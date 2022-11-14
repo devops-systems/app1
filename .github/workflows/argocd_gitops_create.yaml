@@ -1,10 +1,11 @@
-name: ARGOCD GITOPS CREATE
+name: ARGOCD GITOPS
 
-on:
-  create
+on: [create, delete] # runs your workflow when someone creates/deletes a Git reference (Git branch or tag) in the workflow's repository.
 
 jobs:
-  Test: 
+  gitops: 
+    name: ArgoCD GitOps
+    if: github.event.ref_type == 'branch' # checking that the action was not triggered by the tag
     runs-on: 'ubuntu-latest'
     steps:
       - name: Checkout ArgoCD GitOps repo
@@ -16,28 +17,46 @@ jobs:
           path: 'gitops'
       - name: Generate variables                 
         run: |
-          if [ $GITHUB_REF_NAME == 'main' ] 
+          if [ ${{ github.event.ref }} == 'main' ] 
           then
             echo "ARGOCD_APPLICATION_TEMP_FILE=templates/argocd_gitops_prod.yaml" >> $GITHUB_ENV
             echo "ARGOCD_APPLICATION_FOLDER=apps-prod" >> $GITHUB_ENV
-          elif [ $GITHUB_REF_NAME == 'dev' ]
+          elif [ ${{ github.event.ref }} == 'dev' ]
           then
             echo "ARGOCD_APPLICATION_TEMP_FILE=templates/argocd_gitops_dev.yaml" >> $GITHUB_ENV
             echo "ARGOCD_APPLICATION_FOLDER=apps-dev" >> $GITHUB_ENV
-            echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+            echo "IMAGE_TAG=latest" >> $GITHUB_ENV # need for envsubst templates
           else
             echo "ARGOCD_APPLICATION_TEMP_FILE=templates/argocd_gitops_features.yaml" >> $GITHUB_ENV
             echo "ARGOCD_APPLICATION_FOLDER=apps-features" >> $GITHUB_ENV
-            echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+            echo "IMAGE_TAG=latest" >> $GITHUB_ENV # need for envsubst templates
           fi
-          echo "REPO=$(echo $GITHUB_REPOSITORY | cut -d '/' -f2)" >> $GITHUB_ENV # cutting repo name
-          export BRANCH=${GITHUB_REF_NAME//[^[:alnum:]]/} # remove special characters
+          echo "REPO=${{ github.event.repository.name }}" >> $GITHUB_ENV # need for envsubst templates
+          export BRANCH=${{ github.event.ref }} # need for envsubst templates
+          export BRANCH=${BRANCH//[^[:alnum:]]/} # remove special characters
           echo "BRANCH=${BRANCH,,}" >> $GITHUB_ENV # move in lowercase
+      - name: TEST               
+        run: |
+          echo ${{ github.event.ref }}
       - name: Generate file 
+        if: github.event_name == 'create'
         working-directory: gitops
         run: |
           envsubst "$(printf '${%s} ' $(env | cut -d'=' -f1))" < $ARGOCD_APPLICATION_TEMP_FILE > $ARGOCD_APPLICATION_FOLDER/$REPO-$BRANCH.yaml
           cat $ARGOCD_APPLICATION_FOLDER/$REPO-$BRANCH.yaml
+      - name: Delete file 
+        if: github.event_name == 'delete'
+        working-directory: gitops
+        run: |
+          if [ -f "$ARGOCD_APPLICATION_FOLDER/$REPO-$BRANCH.yaml" ]
+          then
+              echo "The file $ARGOCD_APPLICATION_FOLDER/$REPO-$BRANCH.yaml exists."
+              cat $ARGOCD_APPLICATION_FOLDER/$REPO-$BRANCH.yaml
+              rm $ARGOCD_APPLICATION_FOLDER/$REPO-$BRANCH.yaml
+          else
+            echo "The file $ARGOCD_APPLICATION_FOLDER/$REPO-$BRANCH.yaml doesn't exists."
+            exit 1 
+          fi
       - name: Commit & Push changes to ArgoCD GitOps
         working-directory: gitops
         run: |
