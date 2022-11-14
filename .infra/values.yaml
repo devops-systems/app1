@@ -1,0 +1,6 @@
+container:
+  image: kuber
+  tag: "v1.0"
+  repository: bokovets
+
+replicaCount: 2
