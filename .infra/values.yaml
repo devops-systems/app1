@@ -1,6 +1,6 @@
 container:
-  image: mobywebsite
+  image: k8sphp
   tag: "latest"
-  repository: docker
+  repository: adv4000
 
 replicaCount: 1
