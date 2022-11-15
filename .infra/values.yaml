@@ -1,6 +1,6 @@
 container:
-  image: wordpress
-  tag: "0.0.16"
-  repository: bokovets
+  image: nginx
+  tag: "1.23.2"
+  repository: nginx
 
 replicaCount: 1
