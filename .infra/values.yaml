@@ -1,6 +1,6 @@
 container:
   image: k8sphp
-  tag: "version2" # change only for prod
+  tag: "" # change only for NON-prod
   repository: adv4000
 
 replicaCount: 1
