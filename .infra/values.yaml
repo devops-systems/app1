@@ -1,6 +1,6 @@
 container:
-  image: kuber
-  tag: "v1.0"
-  repository: bokovets
+  image: k8sphp
+  tag: "version1"
+  repository: adv4000
 
-replicaCount: 2
+replicaCount: 1
