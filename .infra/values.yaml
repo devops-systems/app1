@@ -1,6 +1,6 @@
 container:
   image: wordpress
-  tag: "0.0.17"
+  tag: "0.0.16"
   repository: bokovets
 
 replicaCount: 1
