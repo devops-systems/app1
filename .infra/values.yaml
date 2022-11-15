@@ -1,6 +1,6 @@
 container:
-  image: wordpress
-  tag: "0.0.16"
-  repository: bokovets
+  image: mobywebsite
+  tag: "latest"
+  repository: docker
 
 replicaCount: 1
