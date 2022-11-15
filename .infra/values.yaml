@@ -1,6 +1,6 @@
 container:
-  image: k8sphp
-  tag: "version1"
-  repository: adv4000
+  image: wordpress
+  tag: "0.0.17"
+  repository: bokovets
 
 replicaCount: 1
